@@ -1,0 +1,8 @@
+if(revisarBigInteger(mensaje)){
+                        String e = "";
+                        for(int i=13; i<mensaje.length(); i++){
+                            e = e + mensaje.charAt(i);
+                        }
+                        mostrarMensaje("Clave Pública (" + e + ") Recibida");
+                        numE = new BigInteger(e);
+                    } else 

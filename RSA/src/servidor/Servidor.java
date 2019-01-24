@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 
-public class Servidor extends JFrame {
+public class Servidor extends JFrame{
 
     private JTextField CampoIntroducir;
     private JTextArea areaPantalla;
@@ -18,8 +18,10 @@ public class Servidor extends JFrame {
     private ServerSocket servidor;
     private Socket conexion, conexion2;
     private int contador = 1;
-
-    public Servidor() {
+    
+    private Thread thread;
+    
+    public Servidor(final Thread thread) {
 
         super("Servidor");
 
@@ -41,6 +43,9 @@ public class Servidor extends JFrame {
         container.add((new JScrollPane(areaPantalla)));
         setSize(300, 150);
         setVisible(true);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        this.thread = thread;
     }
 
     public void EjecutarServidor() {
@@ -66,6 +71,7 @@ public class Servidor extends JFrame {
 
     private void esperarConexion() throws IOException {
         mostrarMensaje("Esperando una Conexion\n");
+        System.out.println("Esperando conexion en " + thread.getName() + " at " + (System.currentTimeMillis()/1000000000));
         conexion = servidor.accept();
         conexion2 = servidor.accept();
         mostrarMensaje("Conexion " + contador + " recibida de: "
@@ -197,13 +203,6 @@ public class Servidor extends JFrame {
                 CampoIntroducir.setEditable(editable);
             }
         });
-    }
-
-    public static void main(String[] args) {
-        Servidor aplicacion = new Servidor();
-        aplicacion.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        aplicacion.setLocationRelativeTo(null);
-        aplicacion.EjecutarServidor();
     }
 
 }
