@@ -5,6 +5,7 @@
  */
 package rsa;
 
+import Cliente.Cliente;
 import java.math.BigInteger;
 import javax.swing.JOptionPane;
 import java.net.*;
@@ -19,6 +20,7 @@ public class _Ventana extends Thread{
     
     private _Ventana app;
     private Ventana ventana;
+    private Cliente client;
     private String title = "Client";
     
     private String servidorChat="127.0.0.1";
@@ -43,7 +45,6 @@ public class _Ventana extends Thread{
         _Ventana appCommit = new _Ventana(app);
     }
     
-    
     private void EjecutarCliente() {
         try {
 
@@ -57,7 +58,7 @@ public class _Ventana extends Thread{
         } finally {
             cerrarConexion();
         }
-
+        
     }
 
     private void ConectarServidor() throws IOException {
@@ -125,10 +126,12 @@ public class _Ventana extends Thread{
         JOptionPane.showMessageDialog(ventana, mensaje, title, JOptionPane.INFORMATION_MESSAGE);
     }
     
-    private void cerrarConexion() {
-        mostrarMensaje("Finalizando la Conexion\n");
+    public void cerrarConexion() {
+        System.out.println("Finalizando la Conexion\n");
 
         try {
+            this.salida.close();
+            this.entrada.close();
             cliente.close();
         } catch (IOException ex) {
             ex.printStackTrace();

@@ -17,14 +17,14 @@ public class Cliente extends JFrame{
     private String mensaje = "";
     private String servidorChat;
     private Socket cliente;
-    
+    private Container container;
     private Thread thread;
 
     public Cliente(final String host) {
 
         super("Cliente");
 
-        Container container = getContentPane();
+        container = getContentPane();
         
         servidorChat = host;
         
@@ -43,20 +43,15 @@ public class Cliente extends JFrame{
         areaPantalla = new JTextArea();
         container.add((new JScrollPane(areaPantalla)), BorderLayout.CENTER);
         setSize(300, 150);
-        setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setVisible(true);
     }
-    public void EjecutarCliente(final Thread thread) {
-        this.thread = thread;
-        this.thread.setName("Client");
-        this.thread.start();
-        
-        System.out.println("Executing " + this.thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/1000) + "seg");
+    
+    public void EjecutarCliente() {
         
         try {
-
-            //ConectarServidor();
+            ConectarServidor();
             obtenerFlujos();
             procesarConexion();
         } catch (EOFException e) {
@@ -66,12 +61,10 @@ public class Cliente extends JFrame{
         } finally {
             cerrarConexion();
         }
-
     }
 
     private void ConectarServidor() throws IOException {
         mostrarMensaje("Intentando ralizar conexión\n");
-        System.out.println("Esperando conexion en " + thread.getName() + " at " + (System.currentTimeMillis()/1000000000));
         cliente = new Socket(InetAddress.getByName(servidorChat), 12345);
         mostrarMensaje("Conectado a: "
                 + cliente.getInetAddress().getHostName());
@@ -153,14 +146,18 @@ public class Cliente extends JFrame{
 
     public void setCliente(Socket cliente) {
         this.cliente = cliente;
-        JOptionPane.showMessageDialog(this, "Intentando Conexion", "AVISO", JOptionPane.INFORMATION_MESSAGE);
+        System.out.println("Intentando Conexión");
+        //JOptionPane.showMessageDialog(this, "Intentando Conexion", "AVISO", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public String getServidorChat() {
         return servidorChat;
     }
 
-    
+    public static void main(String[] args){
+        Cliente cliente = new Cliente("127.0.0.1");
+        cliente.EjecutarCliente();
+    }
     
     
 }

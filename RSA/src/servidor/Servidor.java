@@ -1,5 +1,6 @@
 package servidor;
 
+import Cliente.Cliente;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
@@ -46,37 +47,71 @@ public class Servidor extends JFrame{
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        EjecutarServidor(new Thread("Server"), true);
     }
 
-    public void EjecutarServidor(final Thread thread) {
+    public void EjecutarServidor(final Thread thread, boolean repeat) {
         this.thread = thread;
         this.thread.setName("Server");
         this.thread.start();
+        char res = 'y';
         
         System.out.println("Executing " + this.thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/1000) + "seg");
         try {
             servidor = new ServerSocket(12345, 100);
 
-            while (true) {
+            while ((res == 'y' || res == 'Y')) {
                 try {
                     esperarConexion();
                     obtenerFlujos();
                     procesarConexion();
                 } catch (EOFException e) {
-                    JOptionPane.showMessageDialog(this, "El Servidor cerró la Conexión", "AVISO", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "El Cliente cerró la Conexión", "AVISO", JOptionPane.WARNING_MESSAGE);
                 } finally {
-                    cerrarConexion();
                     contador++;
+                    if(!repeat){
+                        if(JOptionPane.showConfirmDialog(this, "Desea Iniciar Nuevamente?", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                            res = 'y';
+                        } else {
+                            res = 'n';
+                        }
+                    } else {
+                        repeat = false;
+                    }
                 }
             }
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Saliendo", "AVISO", JOptionPane.WARNING_MESSAGE);
-            System.exit(0);
+            System.out.println("Desconectando");
+            
+            if(salida != null){
+                cerrarConexion();
+                cerrarServidor();
+            }
+            
+            if(repeat){
+                mostrarMensaje("Intentando Ejecutar Nuevamente");
+                repeat = false;
+                reiniciar();
+                EjecutarServidor(new Thread(), repeat); 
+            }
+            contador++;
         }
+        
+        if(salida != null){
+            cerrarConexion();
+            cerrarServidor();
+        }
+    }
+    
+    private void reiniciar(){
+        servidor = null;
+        salida = null;
+        entrada = null;
+        conexion = null;
     }
 
     private void esperarConexion() throws IOException {
-        mostrarMensaje("Esperando una Conexion\n");
+        mostrarMensaje("\nEsperando una Conexion\n");
         System.out.println("Esperando conexion en " + thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/100) + "seg");
         conexion = servidor.accept();
     }
@@ -107,7 +142,7 @@ public class Servidor extends JFrame{
                         for(int i=5; i<mensaje.length(); i++){
                             e = e + mensaje.charAt(i);
                         }
-                        mostrarMensaje("Clave Pública (" + e + ") Recibida");
+                        mostrarMensaje("\nClave Pública (" + e + ") Recibida");
                         numE = new BigInteger(e);
                     } else if (mensaje == "Cliente >>> Continuar") {
                         seguir = true;
@@ -177,6 +212,15 @@ public class Servidor extends JFrame{
         }
 
     }
+    
+    private void cerrarServidor(){
+        try {
+            mostrarMensaje("CerrandoServidor");
+            servidor.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     private void enviarDatos(String mensaje) {
         try {
@@ -229,7 +273,5 @@ public class Servidor extends JFrame{
 
     public static void main(String[] args){
         Servidor server = new Servidor();
-        
-        server.EjecutarServidor(new Thread("Server"));
     }
 }
