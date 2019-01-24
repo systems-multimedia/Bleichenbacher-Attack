@@ -6,7 +6,6 @@
 package rsa;
 
 import Cliente.Cliente;
-import Cliente.initiateClient;
 import java.math.BigInteger;
 import javax.swing.JOptionPane;
 import java.net.*;
@@ -15,7 +14,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import servidor.Servidor;
-import servidor.initiateServer;
 
 /**
  *

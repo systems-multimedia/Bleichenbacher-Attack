@@ -55,11 +55,11 @@ public class Servidor extends JFrame{
         
         System.out.println("Executing " + this.thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/1000) + "seg");
         try {
-            //servidor = new ServerSocket(12345, 100);
+            servidor = new ServerSocket(12345, 100);
 
             while (true) {
                 try {
-                    //esperarConexion();
+                    esperarConexion();
                     obtenerFlujos();
                     procesarConexion();
                 } catch (EOFException e) {
@@ -227,5 +227,9 @@ public class Servidor extends JFrame{
         this.conexion = conexion;
     }
 
-    
+    public static void main(String[] args){
+        Servidor server = new Servidor();
+        
+        server.EjecutarServidor(new Thread("Server"));
+    }
 }
