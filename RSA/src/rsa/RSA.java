@@ -11,17 +11,20 @@ public class RSA {
     private BigInteger NumPhi;
     private BigInteger Nume, Numd;
     private Ventana ventana;
+    private _Ventana conection;
     
-    public RSA(int TamañoPrimo, final Ventana ventana) {
+    public RSA(int TamañoPrimo, final _Ventana conection, final Ventana ventana) {
         this.TamañoPrimo = TamañoPrimo;
         this.ventana = ventana;
+        this.conection = conection;
         GenerarPrimos();
         
     }
 
-    public RSA(int TamañoPrimo, BigInteger Nump, BigInteger Numq, final Ventana ventana) {
+    public RSA(int TamañoPrimo, BigInteger Nump, BigInteger Numq, final _Ventana conection, final Ventana ventana) {
         this.TamañoPrimo = TamañoPrimo;
         this.ventana = ventana;
+        this.conection = conection;
         this.Nump = Nump;
         this.Numq = Numq;
         GenerarClaves();
@@ -33,8 +36,6 @@ public class RSA {
         do {
             Numq = new BigInteger(TamañoPrimo, 10, new Random());
         } while (Numq.compareTo(Nump) == 0);
-        
-        new _Ventana(Nume);
     }
 
     public void GenerarClaves() {
@@ -46,7 +47,7 @@ public class RSA {
         } while (Nume.compareTo(NumPhi) != -1 || Nume.gcd(NumPhi).compareTo(BigInteger.valueOf(1)) != 0);
 
         Numd = Nume.modInverse(NumPhi);
-        new _Ventana(Nume);
+        conection.enviarDatos(Nume, conection);
     }
 
     public BigInteger[] Encriptar(String mensaje) {

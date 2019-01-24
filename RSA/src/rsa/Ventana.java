@@ -18,10 +18,11 @@ public class Ventana extends javax.swing.JFrame {
 
     private RSA rsa;
     private RSA cifradoRSA;
-
+    private _Ventana ventana;
+    
     public Ventana() {
         initComponents();
-
+        
         this.setLocationRelativeTo(null);
         this.setResizable(false);
 
@@ -294,7 +295,7 @@ public class Ventana extends javax.swing.JFrame {
         this.txtP.setRequestFocusEnabled(false);
         this.txtQ.setRequestFocusEnabled(false);
 
-        rsa = new RSA(10, this);
+        rsa = new RSA(10, ventana, this);
 
         this.txtP.setText("" + rsa.getNump());
         this.txtQ.setText("" + rsa.getNumq());
@@ -307,7 +308,7 @@ public class Ventana extends javax.swing.JFrame {
             BigInteger p = new BigInteger(this.txtP.getText());
             BigInteger q = new BigInteger(this.txtQ.getText());
 
-            cifradoRSA = new RSA(10, p, q, this);
+            cifradoRSA = new RSA(10, p, q, ventana, this);
 
             this.txtE.setText("" + cifradoRSA.getNume());
             this.txtD.setText("" + cifradoRSA.getNumd());
@@ -354,7 +355,10 @@ public class Ventana extends javax.swing.JFrame {
 
     }//GEN-LAST:event_ButtonOkActionPerformed
     
-
+    public void setVentana(_Ventana ventana){
+        this.ventana = ventana;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton ButtonCifrar;
     private javax.swing.JRadioButton ButtonDescifrar;

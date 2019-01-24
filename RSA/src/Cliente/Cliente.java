@@ -44,7 +44,7 @@ public class Cliente extends JFrame{
         container.add((new JScrollPane(areaPantalla)), BorderLayout.CENTER);
         setSize(300, 150);
         setVisible(true);
-        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
     }
     public void EjecutarCliente(final Thread thread) {

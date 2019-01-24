@@ -5,15 +5,11 @@
  */
 package rsa;
 
-import Cliente.Cliente;
 import java.math.BigInteger;
 import javax.swing.JOptionPane;
 import java.net.*;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
-import servidor.Servidor;
 
 /**
  *
@@ -21,9 +17,9 @@ import servidor.Servidor;
  */
 public class _Ventana extends Thread{
     
-    private Servidor server;
-    private Cliente client;
+    private _Ventana app;
     private Ventana ventana;
+    private String title = "Client";
     
     private String servidorChat="127.0.0.1";
     private ObjectInputStream entrada;
@@ -31,52 +27,24 @@ public class _Ventana extends Thread{
     private Socket cliente;
     
     public _Ventana(final Ventana ventana){
+        ventana.setTitle("Cliente");
         this.ventana = ventana;
         ventana.setVisible(true);
     }
     
-    public _Ventana(BigInteger data){
-        this.enviarDatos(data);
-    }
-    
-    public _Ventana(final Servidor server){
-        this.server = server;
-        //server.EjecutarServidor(this);
-    }
-    
-    public _Ventana(final Cliente client){
-        this.client = client;
-        //client.EjecutarCliente(this);
-    }
-    
-    public _Ventana(final _Ventana me, final Cliente client){
-        try {
-            this.client = client;
-            me.getServer().setServidor(new ServerSocket(12345,100));
-            me.getServer().setConexion(me.getServer().getServidor().accept());
-            this.client.setCliente(new Socket(InetAddress.getByName(client.getServidorChat()), 12345));
-        } catch (IOException ex) {
-            Logger.getLogger(_Ventana.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public _Ventana(){
-        //server.EjecutarServidor(this);
-        //client.EjecutarCliente(this);
+    public _Ventana(_Ventana app){
+        this.app = app;
+        this.app.getVentana().setVentana(this);
+        EjecutarCliente();
     }
     
     public static void main(String args[]) {
-        
         _Ventana app = new _Ventana(new Ventana());
-        _Ventana server = new _Ventana(new Servidor());
-        _Ventana client = new _Ventana(server, new Cliente("127.0.0.1"));
-        _Ventana appCommit = new _Ventana();
-        
-        
+        _Ventana appCommit = new _Ventana(app);
     }
     
     
-    public void EjecutarCliente() {
+    private void EjecutarCliente() {
         try {
 
             ConectarServidor();
@@ -85,7 +53,7 @@ public class _Ventana extends Thread{
         } catch (EOFException e) {
             JOptionPane.showMessageDialog(ventana, "El Cliente cerró la Conexión", "AVISO", JOptionPane.WARNING_MESSAGE);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(ventana, "Saliendo", ex.getMessage(), JOptionPane.ERROR_MESSAGE);
         } finally {
             cerrarConexion();
         }
@@ -95,8 +63,8 @@ public class _Ventana extends Thread{
     private void ConectarServidor() throws IOException {
         mostrarMensaje("Intentando ralizar conexión");
         cliente = new Socket(InetAddress.getByName(servidorChat), 12345);
-        mostrarMensaje("Conectado a: "
-                + cliente.getInetAddress().getHostName());
+        title = title + " || " + cliente.getInetAddress().getHostName();
+        app.getVentana().setTitle(title);
     }
     
     private void obtenerFlujos() throws IOException {
@@ -109,24 +77,43 @@ public class _Ventana extends Thread{
     private void procesarConexion() throws IOException {
 
         String mensaje = "";
+        int cont = 0;
+        enviarDatos("Hola!");
         do {
             try {
 
                 mensaje = (String) entrada.readObject();
+                cont++;
+                app.getVentana().setTitle(app.getVentana().getTitle() + " (" + cont + ")");
                 mostrarMensaje("SERVIDOR", mensaje);
+                app.getVentana().setTitle(title);
 
             } catch (ClassNotFoundException ex) {
-                JOptionPane.showMessageDialog(ventana, "\nSe recibió un tipo de objeto desconocido", "AVISO", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(app.getVentana(), "\nSe recibió un tipo de objeto desconocido", "AVISO", JOptionPane.WARNING_MESSAGE);
+            } catch (NullPointerException ex) {
+                JOptionPane.showMessageDialog(app.getVentana(), "Null", "ERROR", JOptionPane.ERROR_MESSAGE);
             }
         } while (!mensaje.equals("Servidor >>> TERMINAR"));
     }
     
-    public void enviarDatos(BigInteger data){
+    public void enviarDatos(BigInteger data, _Ventana con){
+        String mensaje = "Key: " + data.toString();
+        ObjectOutputStream salida = con.getSalida();
         try {
-            salida.writeObject("Big Integer: " + data);
+            salida.writeObject(mensaje);
             salida.flush();
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(ventana, "Error al escribir objeto", "AVISO", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ventana, ex.getMessage(), "AVISO", JOptionPane.ERROR_MESSAGE);
+        } 
+    }
+    
+    private void enviarDatos(String mensaje) {
+        try {
+            salida.writeObject("Cliente >>> " + mensaje);
+            salida.flush();
+            mostrarMensaje("Cliente >>> " + mensaje);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(ventana, "Error al escribir objeto", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -149,10 +136,15 @@ public class _Ventana extends Thread{
         
     }
 
-    public Servidor getServer() {
-        return server;
+    public Ventana getVentana(){
+        return this.ventana;
     }
 
+    public ObjectOutputStream getSalida() {
+        return salida;
+    }
+    
+    
     
 }
 

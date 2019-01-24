@@ -14,10 +14,10 @@ public class Servidor extends JFrame{
 
     private JTextField CampoIntroducir;
     private JTextArea areaPantalla;
-    private ObjectOutputStream salida, salida2;
-    private ObjectInputStream entrada, entrada2;
+    private ObjectOutputStream salida;
+    private ObjectInputStream entrada;
     private ServerSocket servidor;
-    private Socket conexion, conexion2;
+    private Socket conexion;
     private int contador = 1;
     
     private Thread thread;
@@ -44,7 +44,7 @@ public class Servidor extends JFrame{
         container.add((new JScrollPane(areaPantalla)));
         setSize(300, 150);
         setVisible(true);
-        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
     }
 
@@ -70,7 +70,8 @@ public class Servidor extends JFrame{
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Saliendo", "AVISO", JOptionPane.WARNING_MESSAGE);
+            System.exit(0);
         }
     }
 
@@ -78,22 +79,13 @@ public class Servidor extends JFrame{
         mostrarMensaje("Esperando una Conexion\n");
         System.out.println("Esperando conexion en " + thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/100) + "seg");
         conexion = servidor.accept();
-        conexion2 = servidor.accept();
-        mostrarMensaje("Conexion " + contador + " recibida de: "
-                + conexion.getInetAddress().getHostName());
-        mostrarMensaje("Conexion " + contador + " recibida de: "
-                + conexion2.getInetAddress().getHostName());
     }
 
     private void obtenerFlujos() throws IOException {
         salida = new ObjectOutputStream(conexion.getOutputStream());
         salida.flush();
         
-        salida2 = new ObjectOutputStream(conexion2.getOutputStream());
-        salida2.flush();
-
         entrada = new ObjectInputStream(conexion.getInputStream());
-        entrada2 = new ObjectInputStream(conexion2.getInputStream());
         mostrarMensaje("\nSe recibieron los flujos de E/S");
     }
 
@@ -105,21 +97,29 @@ public class Servidor extends JFrame{
 
         String mensaje = "Conexión Exitosa";
         enviarDatos(mensaje);
-        mensaje = "Indique Encriptado, luego indique 'Continuar'";
-        enviarDatos(mensaje);
         establecerCampoTextoEditable(true);
         do {
             try {
                 if (!seguir) {
                     mensaje = (String) entrada.readObject();
-                    if (mensaje == "Cliente >>> Continuar") {
+                    if(revisarBigInteger(mensaje)){
+                        String e = "";
+                        for(int i=5; i<mensaje.length(); i++){
+                            e = e + mensaje.charAt(i);
+                        }
+                        mostrarMensaje("Clave Pública (" + e + ") Recibida");
+                        numE = new BigInteger(e);
+                    } else if (mensaje == "Cliente >>> Continuar") {
                         seguir = true;
                     } else {
                         mostrarMensaje("\n" + mensaje);
-                        encriptado = new BigInteger[mensaje.length()];
                         String[] temp = mensaje.split(" ");
+                        encriptado = new BigInteger[temp.length];
                         for (int i = 0; i < encriptado.length; i++) {
-                            encriptado[i] = new BigInteger(temp[i]);
+                            String aux = temp[i];
+                            if(Character.isDigit(aux.charAt(0))){
+                                encriptado[i] = new BigInteger(aux);
+                            }
                         }
                     }
                 } else {
@@ -146,11 +146,11 @@ public class Servidor extends JFrame{
     private boolean revisarBigInteger(String mensaje){
         String checking = "";
         
-        for(int i=0; i<11; i++){
+        for(int i=0; i<4; i++){
             checking = checking + mensaje.charAt(i);
         }
         
-        return (checking.equals("Big Integer"));
+        return (checking.equals("Key:"));
     }
     
     private boolean probarS(BigInteger[] c, BigInteger s, BigInteger e) {
