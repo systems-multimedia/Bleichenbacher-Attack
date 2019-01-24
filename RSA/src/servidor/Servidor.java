@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import rsa._Ventana;
 
 public class Servidor extends JFrame{
 
@@ -21,7 +22,7 @@ public class Servidor extends JFrame{
     
     private Thread thread;
     
-    public Servidor(final Thread thread) {
+    public Servidor() {
 
         super("Servidor");
 
@@ -45,16 +46,20 @@ public class Servidor extends JFrame{
         setVisible(true);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
-        this.thread = thread;
     }
 
-    public void EjecutarServidor() {
+    public void EjecutarServidor(final Thread thread) {
+        this.thread = thread;
+        this.thread.setName("Server");
+        this.thread.start();
+        
+        System.out.println("Executing " + this.thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/1000) + "seg");
         try {
-            servidor = new ServerSocket(12345, 100);
+            //servidor = new ServerSocket(12345, 100);
 
             while (true) {
                 try {
-                    esperarConexion();
+                    //esperarConexion();
                     obtenerFlujos();
                     procesarConexion();
                 } catch (EOFException e) {
@@ -71,7 +76,7 @@ public class Servidor extends JFrame{
 
     private void esperarConexion() throws IOException {
         mostrarMensaje("Esperando una Conexion\n");
-        System.out.println("Esperando conexion en " + thread.getName() + " at " + (System.currentTimeMillis()/1000000000));
+        System.out.println("Esperando conexion en " + thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/100) + "seg");
         conexion = servidor.accept();
         conexion2 = servidor.accept();
         mostrarMensaje("Conexion " + contador + " recibida de: "
@@ -205,4 +210,22 @@ public class Servidor extends JFrame{
         });
     }
 
+    public ServerSocket getServidor() {
+        return servidor;
+    }
+
+    public void setServidor(ServerSocket servidor) {
+        this.servidor = servidor;
+        JOptionPane.showMessageDialog(this, "Intentando Conexion", "AVISO", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public Socket getConexion() {
+        return conexion;
+    }
+
+    public void setConexion(Socket conexion) {
+        this.conexion = conexion;
+    }
+
+    
 }

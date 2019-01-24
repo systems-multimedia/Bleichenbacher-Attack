@@ -20,7 +20,7 @@ public class Cliente extends JFrame{
     
     private Thread thread;
 
-    public Cliente(final String host, final Thread thread) {
+    public Cliente(final String host) {
 
         super("Cliente");
 
@@ -46,12 +46,17 @@ public class Cliente extends JFrame{
         setVisible(true);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
-        this.thread = thread;
     }
-    public void EjecutarCliente() {
+    public void EjecutarCliente(final Thread thread) {
+        this.thread = thread;
+        this.thread.setName("Client");
+        this.thread.start();
+        
+        System.out.println("Executing " + this.thread.getName() + " at " + ((System.currentTimeMillis()/1000000000)/1000) + "seg");
+        
         try {
 
-            ConectarServidor();
+            //ConectarServidor();
             obtenerFlujos();
             procesarConexion();
         } catch (EOFException e) {
@@ -142,5 +147,20 @@ public class Cliente extends JFrame{
         });
     }
 
+    public Socket getCliente() {
+        return cliente;
+    }
 
+    public void setCliente(Socket cliente) {
+        this.cliente = cliente;
+        JOptionPane.showMessageDialog(this, "Intentando Conexion", "AVISO", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public String getServidorChat() {
+        return servidorChat;
+    }
+
+    
+    
+    
 }

@@ -23,6 +23,8 @@ import servidor.initiateServer;
  */
 public class _Ventana extends Thread{
     
+    private Servidor server;
+    private Cliente client;
     private Ventana ventana;
     
     private String servidorChat="127.0.0.1";
@@ -39,33 +41,40 @@ public class _Ventana extends Thread{
         this.enviarDatos(data);
     }
     
+    public _Ventana(final Servidor server){
+        this.server = server;
+        //server.EjecutarServidor(this);
+    }
+    
+    public _Ventana(final Cliente client){
+        this.client = client;
+        //client.EjecutarCliente(this);
+    }
+    
+    public _Ventana(final _Ventana me, final Cliente client){
+        try {
+            this.client = client;
+            me.getServer().setServidor(new ServerSocket(12345,100));
+            me.getServer().setConexion(me.getServer().getServidor().accept());
+            this.client.setCliente(new Socket(InetAddress.getByName(client.getServidorChat()), 12345));
+        } catch (IOException ex) {
+            Logger.getLogger(_Ventana.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public _Ventana(){
+        //server.EjecutarServidor(this);
+        //client.EjecutarCliente(this);
     }
     
     public static void main(String args[]) {
         
-        initiateServer servidor = new initiateServer();
-        initiateClient cliente = new initiateClient("127.0.0.1");
         _Ventana app = new _Ventana(new Ventana());
+        _Ventana server = new _Ventana(new Servidor());
+        _Ventana client = new _Ventana(server, new Cliente("127.0.0.1"));
         _Ventana appCommit = new _Ventana();
         
-        new Runnable(){
-            public void run(){
-                servidor.getServer().EjecutarServidor();
-            }
-        };
         
-        new Runnable(){
-            public void run(){
-                cliente.getClient().EjecutarCliente();
-            }
-        };
-        
-        new Runnable(){
-            public void run(){
-                appCommit.EjecutarCliente();
-            }
-        };
     }
     
     
@@ -142,6 +151,11 @@ public class _Ventana extends Thread{
         
     }
 
+    public Servidor getServer() {
+        return server;
+    }
+
+    
 }
 
 
