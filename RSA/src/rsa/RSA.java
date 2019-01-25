@@ -47,7 +47,7 @@ public class RSA {
         } while (Nume.compareTo(NumPhi) != -1 || Nume.gcd(NumPhi).compareTo(BigInteger.valueOf(1)) != 0);
 
         Numd = Nume.modInverse(NumPhi);
-        conection.enviarDatos(Nume, conection);
+        conection.enviarDatos(Nume, Numn, conection);
     }
 
     public BigInteger[] Encriptar(String mensaje) {

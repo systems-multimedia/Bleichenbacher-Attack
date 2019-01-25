@@ -13,11 +13,13 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import servidor.Servidor;
 
 
 /**
@@ -41,7 +43,8 @@ public class Ventana extends javax.swing.JFrame {
             public void windowClosing(WindowEvent ev){
                 if(JOptionPane.showConfirmDialog(null, "Desea cerrar la ventana?", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
                     hideWindow();
-                    ventana.cerrarConexion();
+                    ventana.enviarDatos("Se va a cerrar la conexión...\nPor favor inicie como cliente");
+                    //ventana.cerrarConexion();
                     System.exit(0);
                 }
             }
@@ -362,6 +365,7 @@ public class Ventana extends javax.swing.JFrame {
                         this.txtMensaje.setText(this.txtMensaje.getText() + "");
                     }
                 }
+                ventana.enviarDatos(textoCifrado);
             } else {
                 String letra = "";
                 StringTokenizer st = new StringTokenizer(this.txtMensaje.getText());

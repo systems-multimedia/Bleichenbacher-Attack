@@ -64,9 +64,9 @@ public class Cliente extends JFrame{
     }
 
     private void ConectarServidor() throws IOException {
-        mostrarMensaje("Intentando ralizar conexión\n");
+        mostrarMensaje("\nIntentando ralizar conexión\n");
         cliente = new Socket(InetAddress.getByName(servidorChat), 12345);
-        mostrarMensaje("Conectado a: "
+        mostrarMensaje("\nConectado a: "
                 + cliente.getInetAddress().getHostName());
     }
 
@@ -87,6 +87,31 @@ public class Cliente extends JFrame{
 
                 mensaje = (String) entrada.readObject();
                 mostrarMensaje("\n" + mensaje);
+                if(mensaje.equals("Servidor >>> please enter 's'")){
+                    mensaje = JOptionPane.showInputDialog(this, "Please enter 's'");
+                    if(!mensaje.isEmpty()){
+                        enviarDatos("S: " + mensaje);
+                    } else {
+                        enviarDatos("S: ");
+                        int i = 1;
+                        boolean end = false;
+                        do {
+                            if(!(mensaje = (String) entrada.readObject()).equals("Servidor >>> wait")){
+                                enviarDatos(i);
+                                mensaje = (String) entrada.readObject();
+                                mostrarMensaje("\n" + mensaje);
+                                switch(mensaje){
+                                    case "Servidor >>> Decryption Success":
+                                        end = true;
+                                        break;
+                                    default:
+                                        i = i + 1;
+                                        break;
+                                }
+                            } 
+                        } while (i < 999999 && end == false);
+                    }
+                }
 
             } catch (ClassNotFoundException ex) {
                 JOptionPane.showMessageDialog(this, "\nSe recibió un tipo de objeto desconocido", "AVISO", JOptionPane.WARNING_MESSAGE);
@@ -97,7 +122,7 @@ public class Cliente extends JFrame{
     private void cerrarConexion() {
         mostrarMensaje("\nFinalizando la Conexion\n");
         establecerCampoTextoEditable(false);
-
+        
         try {
             salida.close();
             entrada.close();
@@ -111,6 +136,16 @@ public class Cliente extends JFrame{
     private void enviarDatos(String mensaje) {
         try {
             salida.writeObject("Cliente >>> " + mensaje);
+            salida.flush();
+            mostrarMensaje("\nCliente >>> " + mensaje);
+        } catch (IOException ex) {
+            areaPantalla.append("\nError al escribir objeto");
+        }
+    }
+    
+    private void enviarDatos(int mensaje){
+        try {
+            salida.writeInt(mensaje);
             salida.flush();
             mostrarMensaje("\nCliente >>> " + mensaje);
         } catch (IOException ex) {
@@ -153,6 +188,9 @@ public class Cliente extends JFrame{
     public String getServidorChat() {
         return servidorChat;
     }
+
+    
+    
 
     public static void main(String[] args){
         Cliente cliente = new Cliente("127.0.0.1");

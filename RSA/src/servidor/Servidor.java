@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,11 @@ public class Servidor extends JFrame{
     private ServerSocket servidor;
     private Socket conexion;
     private int contador = 1;
+    private static boolean continuar = false;
+    
+    private BigInteger numE, numN, numD;
+    private BigInteger[] encriptado = null;
+    private BigInteger numS;
     
     private Thread thread;
     
@@ -47,10 +53,10 @@ public class Servidor extends JFrame{
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        EjecutarServidor(new Thread("Server"), true);
+        EjecutarServidor(new Thread("Server"), false);
     }
 
-    public void EjecutarServidor(final Thread thread, boolean repeat) {
+    public void EjecutarServidor(final Thread thread, boolean decrypting) {
         this.thread = thread;
         this.thread.setName("Server");
         this.thread.start();
@@ -60,26 +66,13 @@ public class Servidor extends JFrame{
         try {
             servidor = new ServerSocket(12345, 100);
 
-            while ((res == 'y' || res == 'Y')) {
-                try {
-                    esperarConexion();
-                    obtenerFlujos();
-                    procesarConexion();
-                } catch (EOFException e) {
-                    JOptionPane.showMessageDialog(this, "El Cliente cerró la Conexión", "AVISO", JOptionPane.WARNING_MESSAGE);
-                } finally {
-                    contador++;
-                    if(!repeat){
-                        if(JOptionPane.showConfirmDialog(this, "Desea Iniciar Nuevamente?", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
-                            res = 'y';
-                        } else {
-                            res = 'n';
-                        }
-                    } else {
-                        repeat = false;
-                    }
-                }
-            }
+            try {
+                esperarConexion();
+                obtenerFlujos();
+                procesarConexion(decrypting);
+            } catch (EOFException e) {
+                JOptionPane.showMessageDialog(this, "El Cliente cerró la Conexión", "AVISO", JOptionPane.WARNING_MESSAGE);
+            } 
         } catch (IOException ex) {
             System.out.println("Desconectando");
             
@@ -88,11 +81,10 @@ public class Servidor extends JFrame{
                 cerrarServidor();
             }
             
-            if(repeat){
-                mostrarMensaje("Intentando Ejecutar Nuevamente");
-                repeat = false;
+            if(JOptionPane.showConfirmDialog(this, "Ejecutar Servidor", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                mostrarMensaje("\nIntentando Ejecutar Nuevamente");
                 reiniciar();
-                EjecutarServidor(new Thread(), repeat); 
+                EjecutarServidor(new Thread(), true); 
             }
             contador++;
         }
@@ -124,55 +116,73 @@ public class Servidor extends JFrame{
         mostrarMensaje("\nSe recibieron los flujos de E/S");
     }
 
-    private void procesarConexion() throws IOException {
+    private void procesarConexion(boolean decrypting) throws IOException {
 
-        boolean seguir = false;
-        BigInteger[] encriptado = null;
-        BigInteger numS, numE;
+        boolean ignore = false;
 
         String mensaje = "Conexión Exitosa";
         enviarDatos(mensaje);
         establecerCampoTextoEditable(true);
         do {
             try {
-                if (!seguir) {
+                if(!decrypting){
                     mensaje = (String) entrada.readObject();
                     if(revisarBigInteger(mensaje)){
-                        String e = "";
+                        String e = "", n = "";
+                        boolean _e = true;
                         for(int i=5; i<mensaje.length(); i++){
-                            e = e + mensaje.charAt(i);
-                        }
-                        mostrarMensaje("\nClave Pública (" + e + ") Recibida");
-                        numE = new BigInteger(e);
-                    } else if (mensaje == "Cliente >>> Continuar") {
-                        seguir = true;
-                    } else {
-                        mostrarMensaje("\n" + mensaje);
-                        String[] temp = mensaje.split(" ");
-                        encriptado = new BigInteger[temp.length];
-                        for (int i = 0; i < encriptado.length; i++) {
-                            String aux = temp[i];
-                            if(Character.isDigit(aux.charAt(0))){
-                                encriptado[i] = new BigInteger(aux);
+                            if(mensaje.charAt(i) == ' '){
+                                i += 7;
+                                _e = false;
+                            }
+                            if(_e){
+                                e = e + mensaje.charAt(i);
+                            } else {
+                                n = n + mensaje.charAt(i);
                             }
                         }
+                        System.out.println("\nClave Pública (" + e + ") mode " + n + " Recibida");
+                        numE = new BigInteger(e);
+                        numN = new BigInteger(n);
+                    } else if(Character.isDigit(mensaje.charAt(1))){
+                        mostrarMensaje("\nEncriptado Recibido: " + mensaje);
+                        String[] temp = mensaje.split(", ");
+                        temp[0] = temp[0].subSequence(1, temp[0].length()).toString();
+                        temp[temp.length-1] = temp[temp.length-1].subSequence(0, temp[temp.length-1].length()-1).toString();
+                        encriptado = new BigInteger[temp.length];
+                        for(int i = 0; i < encriptado.length ; i++) {
+                            encriptado[i] = new BigInteger(temp[i]);
+                        }
+                        enviarDatos("Cierre esta ventana e Inicie como Cliente");
+                        
+                    }  else {
+                        mostrarMensaje("\n" + mensaje);
                     }
                 } else {
-                    mensaje = "Indique valor s";
-                    enviarDatos(mensaje);
-                    numS = new BigInteger((String) entrada.readObject());
-                    mensaje = "Indique valor e";
-                    enviarDatos(mensaje);
-                    numE = new BigInteger((String) entrada.readObject());
-                    if (!probarS(encriptado, numS, numE)) {
-                        mensaje = "Intento Fallido";
-                        enviarDatos(mensaje);
-                    } else {
-                        mensaje = "S entra en el rango";
-                        enviarDatos(mensaje);
+                    
+                    if(!ignore){
+                        enviarDatos("please enter 's'");
+                        ignore = true;
+                        mensaje = (String) entrada.readObject();
+                        enviarDatos("Recibiendo S");
                     }
-                }
-            } catch (ClassNotFoundException ex) {
+                    
+                    if(checkInputS(mensaje) || ignore == false){
+                        int s = entrada.readInt();
+                        enviarDatos("wait");
+                        numS = BigInteger.valueOf(s);
+                        mostrarMensaje("Empezando a Calcular " + numS);
+                        boolean x = checkS();
+                        if(!x){
+                            System.out.println("Failed Decryption " + numS);
+                            enviarDatos("Failed Decryption");
+                            ignore = false;
+                        } else {
+                            enviarDatos("Decryption Success");
+                        }
+                    } 
+                } 
+            }catch (ClassNotFoundException ex) {
                 JOptionPane.showMessageDialog(this, "\nSe recibió un tipo de objeto desconocido", "AVISO", JOptionPane.WARNING_MESSAGE);
             }
         } while (!mensaje.equals("Cliente >>> TERMINAR"));
@@ -188,12 +198,32 @@ public class Servidor extends JFrame{
         return (checking.equals("Key:"));
     }
     
-    private boolean probarS(BigInteger[] c, BigInteger s, BigInteger e) {
-        BigInteger[] Cp = new BigInteger[c.length];
-
-        for (int i = 0; i < Cp.length; i++) {
-            Cp[i] = c[i].multiply(s.modPow(e, e));
+    private boolean checkInputS(String mensaje){
+        String checking = "";
+        mostrarMensaje("\nRECIBIENDO S");
+        for(int i = 12; i < 15; i++){
+            checking = checking + mensaje.charAt(i);
         }
+        
+        return (checking.equals("S: "));
+    }
+    
+    private boolean checkS(){
+        mostrarMensaje("\nProbando");
+        BigInteger c, numD, dc;
+        
+        int i = 1;
+        int e = numE.intValue();
+        c = encriptado[0].multiply(numS.modPow(numE, numN));
+        do {
+            numD = BigInteger.valueOf(i);
+            dc = c.modPow(numD, numN);
+            if((dc.multiply(numS)).compareTo(numD) == 0){
+                return true;
+            }
+            i++;
+            System.out.println("e: " + e + " || i: " + i);
+        } while (i < e);
         
         return false;
     }
@@ -253,24 +283,7 @@ public class Servidor extends JFrame{
             }
         });
     }
-
-    public ServerSocket getServidor() {
-        return servidor;
-    }
-
-    public void setServidor(ServerSocket servidor) {
-        this.servidor = servidor;
-        JOptionPane.showMessageDialog(this, "Intentando Conexion", "AVISO", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public Socket getConexion() {
-        return conexion;
-    }
-
-    public void setConexion(Socket conexion) {
-        this.conexion = conexion;
-    }
-
+    
     public static void main(String[] args){
         Servidor server = new Servidor();
     }

@@ -10,6 +10,9 @@ import java.math.BigInteger;
 import javax.swing.JOptionPane;
 import java.net.*;
 import java.io.*;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -97,18 +100,27 @@ public class _Ventana extends Thread{
         } while (!mensaje.equals("Servidor >>> TERMINAR"));
     }
     
-    public void enviarDatos(BigInteger data, _Ventana con){
-        String mensaje = "Key: " + data.toString();
-        ObjectOutputStream salida = con.getSalida();
+    public void enviarDatos(BigInteger key, BigInteger mode, _Ventana con){
+        String mensaje = "Key: " + key.toString() + " mode: " + mode;
+        ObjectOutputStream out = con.getSalida();
         try {
-            salida.writeObject(mensaje);
-            salida.flush();
+            out.writeObject(mensaje);
+            out.flush();
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(ventana, ex.getMessage(), "AVISO", JOptionPane.ERROR_MESSAGE);
         } 
     }
     
-    private void enviarDatos(String mensaje) {
+    public void enviarDatos(BigInteger[] mensaje){
+        try {
+            salida.writeObject(Arrays.toString(mensaje));
+            salida.flush();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(ventana, ex.getMessage(), "AVISO", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    public void enviarDatos(String mensaje) {
         try {
             salida.writeObject("Cliente >>> " + mensaje);
             salida.flush();
