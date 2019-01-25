@@ -5,22 +5,12 @@
  */
 package rsa;
 
-import Cliente.Cliente;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import servidor.Servidor;
-
 
 /**
  *
@@ -31,17 +21,17 @@ public class Ventana extends javax.swing.JFrame {
     private RSA rsa;
     private RSA cifradoRSA;
     private _Ventana ventana;
-    
+
     public Ventana() {
         initComponents();
-        
+
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        
-        this.addWindowListener(new WindowAdapter(){
-            public void windowClosing(WindowEvent ev){
-                if(JOptionPane.showConfirmDialog(null, "Desea cerrar la ventana?", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent ev) {
+                if (JOptionPane.showConfirmDialog(null, "Desea cerrar la ventana?", "ATENCIÓN", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                     hideWindow();
                     ventana.enviarDatos("Se va a cerrar la conexión...\nPor favor inicie como cliente");
                     //ventana.cerrarConexion();
@@ -49,7 +39,7 @@ public class Ventana extends javax.swing.JFrame {
                 }
             }
         });
-        
+
         this.txtD.setEditable(false);
         this.txtE.setEditable(false);
         this.txtN.setEditable(false);
@@ -60,8 +50,8 @@ public class Ventana extends javax.swing.JFrame {
         this.txtN.setRequestFocusEnabled(false);
         this.txtPhi.setRequestFocusEnabled(false);
     }
-    
-    private void hideWindow(){
+
+    private void hideWindow() {
         this.setVisible(false);
     }
 
@@ -375,17 +365,17 @@ public class Ventana extends javax.swing.JFrame {
                     letra = st.nextToken();
                     textoCifrado[i] = new BigInteger(letra);
                 }
-                
+
                 this.txtMensaje.setText(cifradoRSA.Desencriptar(textoCifrado));
             }
         }
 
     }//GEN-LAST:event_ButtonOkActionPerformed
-    
-    public void setVentana(_Ventana ventana){
+
+    public void setVentana(_Ventana ventana) {
         this.ventana = ventana;
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton ButtonCifrar;
     private javax.swing.JRadioButton ButtonDescifrar;

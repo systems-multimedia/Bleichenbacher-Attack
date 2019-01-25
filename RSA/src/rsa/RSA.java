@@ -3,7 +3,6 @@ package rsa;
 import java.math.BigInteger;
 import java.util.Random;
 
-
 public class RSA {
 
     int TamañoPrimo;
@@ -12,13 +11,13 @@ public class RSA {
     private BigInteger Nume, Numd;
     private Ventana ventana;
     private _Ventana conection;
-    
+
     public RSA(int TamañoPrimo, final _Ventana conection, final Ventana ventana) {
         this.TamañoPrimo = TamañoPrimo;
         this.ventana = ventana;
         this.conection = conection;
         GenerarPrimos();
-        
+
     }
 
     public RSA(int TamañoPrimo, BigInteger Nump, BigInteger Numq, final _Ventana conection, final Ventana ventana) {
@@ -28,7 +27,7 @@ public class RSA {
         this.Nump = Nump;
         this.Numq = Numq;
         GenerarClaves();
-        
+
     }
 
     public void GenerarPrimos() {
@@ -44,6 +43,7 @@ public class RSA {
 
         do {
             Nume = new BigInteger(2 * TamañoPrimo, new Random());
+
         } while (Nume.compareTo(NumPhi) != -1 || Nume.gcd(NumPhi).compareTo(BigInteger.valueOf(1)) != 0);
 
         Numd = Nume.modInverse(NumPhi);
@@ -62,7 +62,7 @@ public class RSA {
 
         BigInteger[] encriptado = new BigInteger[BigDigitos.length];
         for (int i = 0; i < BigDigitos.length; i++) {
-            
+
             encriptado[i] = BigDigitos[i].modPow(Nume, Numn);
         }
 

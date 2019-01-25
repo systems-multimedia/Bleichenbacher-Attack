@@ -4,11 +4,10 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.EventListener;
 import javax.swing.*;
 
-public class Cliente extends JFrame{
+public class Cliente extends JFrame implements EventListener {
 
     private JTextField CampoIntroducir;
     private JTextArea areaPantalla;
@@ -25,9 +24,9 @@ public class Cliente extends JFrame{
         super("Cliente");
 
         container = getContentPane();
-        
+
         servidorChat = host;
-        
+
         CampoIntroducir = new JTextField();
         CampoIntroducir.setEditable(false);
         CampoIntroducir.addActionListener(new ActionListener() {
@@ -47,9 +46,9 @@ public class Cliente extends JFrame{
         setLocationRelativeTo(null);
         setVisible(true);
     }
-    
+
     public void EjecutarCliente() {
-        
+
         try {
             ConectarServidor();
             obtenerFlujos();
@@ -87,20 +86,22 @@ public class Cliente extends JFrame{
 
                 mensaje = (String) entrada.readObject();
                 mostrarMensaje("\n" + mensaje);
-                if(mensaje.equals("Servidor >>> please enter 's'")){
+                if (mensaje.equals("Servidor >>> please enter 's'")) {
                     mensaje = JOptionPane.showInputDialog(this, "Please enter 's'");
-                    if(!mensaje.isEmpty()){
+                    if (!mensaje.isEmpty()) {
                         enviarDatos("S: " + mensaje);
                     } else {
                         enviarDatos("S: ");
                         int i = 1;
                         boolean end = false;
                         do {
-                            if(!(mensaje = (String) entrada.readObject()).equals("Servidor >>> wait")){
+                            if (!(mensaje = (String) entrada.readObject()).equals("Servidor >>> wait")) {
+                                mostrarMensaje("\n" + mensaje);
+                                mostrarMensaje("\nsend 'TERMINAR' to finish process");
                                 enviarDatos(i);
                                 mensaje = (String) entrada.readObject();
-                                mostrarMensaje("\n" + mensaje);
-                                switch(mensaje){
+
+                                switch (mensaje) {
                                     case "Servidor >>> Decryption Success":
                                         end = true;
                                         break;
@@ -108,8 +109,14 @@ public class Cliente extends JFrame{
                                         i = i + 1;
                                         break;
                                 }
-                            } 
-                        } while (i < 999999 && end == false);
+                            }
+                        } while (i < 1000 && end == false);
+                        if (!end) {
+                            int answer = JOptionPane.showConfirmDialog(this, "After many connections, haven't found a compatible value \nContinue?", "Connection Failed", JOptionPane.YES_NO_OPTION);
+                            if (answer != JOptionPane.YES_OPTION) {
+                                mensaje = "Servidor >>> TERMINAR";
+                            }
+                        }
                     }
                 }
 
@@ -122,7 +129,7 @@ public class Cliente extends JFrame{
     private void cerrarConexion() {
         mostrarMensaje("\nFinalizando la Conexion\n");
         establecerCampoTextoEditable(false);
-        
+
         try {
             salida.close();
             entrada.close();
@@ -130,7 +137,7 @@ public class Cliente extends JFrame{
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        
+
     }
 
     private void enviarDatos(String mensaje) {
@@ -142,8 +149,8 @@ public class Cliente extends JFrame{
             areaPantalla.append("\nError al escribir objeto");
         }
     }
-    
-    private void enviarDatos(int mensaje){
+
+    private void enviarDatos(int mensaje) {
         try {
             salida.writeInt(mensaje);
             salida.flush();
@@ -189,13 +196,9 @@ public class Cliente extends JFrame{
         return servidorChat;
     }
 
-    
-    
-
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Cliente cliente = new Cliente("127.0.0.1");
         cliente.EjecutarCliente();
     }
-    
-    
+
 }
