@@ -12,29 +12,38 @@ import java.util.StringTokenizer;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Samuel
- */
 public class Form extends javax.swing.JFrame {
 
+    // declaring Variables
     private RSA rsa;
     private RSA cypherRSA;
     private Enc_Window app;
 
+    /**
+     * end of Variables declaration
+     * 
+     * init Constructor
+     */
     public Form() {
         initComponents();
 
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Don't run usual closing action
 
         this.addWindowListener(new WindowAdapter() {
+            /**
+             * Detects close request, confirms if user really wants to close if
+             * textBox is empty, server has to be closed, so window notifies
+             * user that he has to close Server window
+             *
+             * @param ev
+             */
             public void windowClosing(WindowEvent ev) {
                 if (JOptionPane.showConfirmDialog(null, "Close this Window?", "WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                     hideWindow();
-                    if(txtMessage.getText().isEmpty()){
-                        JOptionPane.showMessageDialog(null, "Empty Box, close Server");
+                    if (txtMessage.getText().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Empty Box, close Server", "WARNING", JOptionPane.INFORMATION_MESSAGE);
                     }
                     System.exit(0);
                 }
@@ -52,6 +61,11 @@ public class Form extends javax.swing.JFrame {
         this.txtPhi.setRequestFocusEnabled(false);
     }
 
+    /**
+     * end of Constructor
+     * 
+     * init methods
+     */
     private void hideWindow() {
         this.setVisible(false);
     }
@@ -310,14 +324,12 @@ public class Form extends javax.swing.JFrame {
         this.txtP.setRequestFocusEnabled(false);
         this.txtQ.setRequestFocusEnabled(false);
 
-        rsa = new RSA(10, app, this);
-        
-        /**
-         * @note:
-         * Create a RSA() instance to set txtP and txtQ with
-         * the values calculated in getParameters() process
-         */
+        rsa = new RSA(10, app);
 
+        /**
+         * @note: Create a RSA() instance to set txtP and txtQ with the values
+         * calculated in getParameters() process
+         */
         this.txtP.setText("" + rsa.getNump());
         this.txtQ.setText("" + rsa.getNumq());
     }//GEN-LAST:event_buttonGenerateActionPerformed
@@ -329,16 +341,14 @@ public class Form extends javax.swing.JFrame {
             BigInteger p = new BigInteger(this.txtP.getText());
             BigInteger q = new BigInteger(this.txtQ.getText());
 
-            cypherRSA = new RSA(10, p, q, app, this);
-            
+            cypherRSA = new RSA(10, p, q, app);
+
             /**
              * @note:
-             * 
-             * creates the RSA() new instance that will
-             * be the same which runs the encrypted() and decrypted()
-             * methods
+             *
+             * creates the RSA() new instance that will be the same which runs
+             * the encrypted() and decrypted() methods
              */
-
             this.txtE.setText("" + cypherRSA.getNume());
             this.txtD.setText("" + cypherRSA.getNumd());
             this.txtN.setText("" + cypherRSA.getNumn());

@@ -4,48 +4,64 @@ import java.math.BigInteger;
 import java.util.Random;
 
 /**
- * @author
- * 
  * RSA Operation is explained in link below
+ *
  * @@link https://simple.wikipedia.org/wiki/RSA_algorithm#Operation
- * 
+ *
  */
-
 public class RSA {
 
+    // declaring Variables
     int primeSize;
     private BigInteger Nump, Numq, Numn;
     private BigInteger NumPhi;
     private BigInteger Nume, Numd;
-    private Form form;
-    private Enc_Window connection;
+    private final Enc_Window connection;
 
-    public RSA(int primeSize, final Enc_Window connection, final Form form) {
+    /**
+     * end of Variables declaration
+     *
+     *
+     *
+     * init Constructors
+     *
+     * @param primeSize
+     * @param connection
+     */
+    public RSA(int primeSize, final Enc_Window connection) {
         this.primeSize = primeSize;
-        this.form = form;
         this.connection = connection;
         getParameters();
 
     }
 
-    public RSA(int primeSize, BigInteger Nump, BigInteger Numq, final Enc_Window connection, final Form form) {
+    public RSA(int primeSize, BigInteger Nump, BigInteger Numq, final Enc_Window connection) {
         this.primeSize = primeSize;
-        this.form = form;
         this.connection = connection;
         this.Nump = Nump;
         this.Numq = Numq;
         getKeys();
 
     }
-
-    public void getParameters() {
-        Nump = new BigInteger(primeSize, 10, new Random());
+    /**
+     * end of Constructors
+     * 
+     * init methods
+     * 
+     * random p and q values
+     */
+    public final void getParameters() {
+        Nump = new BigInteger(primeSize, 10, new Random()); // Constructor ==> BigInteger(int, int, Random)
         do {
-            Numq = new BigInteger(primeSize, 10, new Random());
-        } while (Numq.compareTo(Nump) == 0);
+            Numq = new BigInteger(primeSize, 10, new Random()); // Constructor ==> BigInteger(int, int, Random)
+        } while (Numq.compareTo(Nump) == 0);                // while q == p
     }
 
-    public void getKeys() {
+    /**
+     * n = p * q
+     * PhiN = (p-1)(q-1)
+     */
+    public final void getKeys() {
         Numn = Nump.multiply(Numq);
         NumPhi = (Nump.subtract(BigInteger.valueOf(1))).multiply(Numq.subtract(BigInteger.valueOf(1)));
 
@@ -55,7 +71,7 @@ public class RSA {
         } while (Nume.compareTo(NumPhi) != -1 || Nume.gcd(NumPhi).compareTo(BigInteger.valueOf(1)) != 0);
 
         Numd = Nume.modInverse(NumPhi);
-        connection.sendData(Nume, Numn, connection);
+        connection.sendData(Nume, Numn, connection); // use the caller window to make a connection and send the key and the mode
     }
 
     public BigInteger[] Encrypted(String ms) {
@@ -65,13 +81,18 @@ public class RSA {
 
         for (int i = 0; i < bigDigits.length; i++) {
             temp[0] = dig[i];
-            bigDigits[i] = new BigInteger(temp);
+            bigDigits[i] = new BigInteger(temp);    // Constructor ==> BigInteger(byte[])
         }
 
         BigInteger[] encrypted = new BigInteger[bigDigits.length];
         for (int i = 0; i < bigDigits.length; i++) {
 
             encrypted[i] = bigDigits[i].modPow(Nume, Numn);
+
+            /**
+             * Being c the encrypted message and m the message, c = m^e (mode n)
+             * with e as the key public
+             */
         }
 
         return encrypted;
@@ -81,6 +102,11 @@ public class RSA {
         BigInteger[] decrypted = new BigInteger[encrypted.length];
         for (int i = 0; i < decrypted.length; i++) {
             decrypted[i] = encrypted[i].modPow(Numd, Numn);
+
+            /**
+             * being m the decrypted and c the encrypted one, m = c^d with d as
+             * the private key
+             */
         }
 
         char[] charArray = new char[decrypted.length];

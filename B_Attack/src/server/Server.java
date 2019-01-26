@@ -11,6 +11,7 @@ import javax.swing.*;
 
 public class Server extends JFrame {
 
+    // declaring Variables
     private JTextField textField;
     private JTextArea screenArea;
     private ObjectOutputStream output;
@@ -23,6 +24,7 @@ public class Server extends JFrame {
     private BigInteger[] encrypted = null;  // To save encrypted message received from RSA
     private BigInteger numS;                // Value written by client
 
+    // init Constructor
     public Server() {
 
         super("Server");
@@ -49,8 +51,13 @@ public class Server extends JFrame {
         setLocationRelativeTo(null);
         runServer(false);           // Start the Process
     }
-
-    public void runServer( boolean decrypting) {
+    /**
+     * end of Constructor
+     * 
+     * init methods 
+     * @param decrypting 
+     */
+    public final void runServer( boolean decrypting) {
 
         try {
             server = new ServerSocket(12345, 100);  // Initializing Server Socket with port 12345
@@ -132,7 +139,8 @@ public class Server extends JFrame {
                     message = (String) input.readObject();
                     /**
                      * Program will wait 'til client
-                     * sends a message
+                     * sends a message, before that
+                     * program won't run
                      */
                     if (message.equals("Client >>> FINISH")) {
                         int answer = JOptionPane.showConfirmDialog(this, "Sure you want to finish connection?", "WARNING", JOptionPane.YES_NO_OPTION);
@@ -146,6 +154,9 @@ public class Server extends JFrame {
                          * @note:
                          * Check if message comes in format
                          * "key: 'number' mode: 'number'
+                         * then, it starts concatening each
+                         * digit in the message to get the key
+                         * and the mode
                          */
                         
                         String e = "", n = "";
@@ -157,14 +168,14 @@ public class Server extends JFrame {
                                 _e = false;
                             }
                             if (_e) {
-                                e = e + message.charAt(i); 
+                                e = e + message.charAt(i);  // e.g: e = " " + "5" = " 5"
                             } else {
                                 n = n + message.charAt(i);
                             }
                         }
                         System.out.println("\nPublic Key (" + e + ") mode " + n + " detected");
-                        numE = new BigInteger(e);
-                        numN = new BigInteger(n);
+                        numE = new BigInteger(e);           // Constructor ==> public BigInteger(String)
+                        numN = new BigInteger(n);           // Constructor ==> public BigInteger(String)
                     } else if (Character.isDigit(message.charAt(1))) { 
                         
                         /**
@@ -209,7 +220,11 @@ public class Server extends JFrame {
                         /**
                          * @note:
                          * this will go once to notify the client
-                         * that it needs to get a S value
+                         * that it needs to get a S value, so it
+                         * won't run 'til client gives an S
+                         * 
+                         * in this case, client window sends
+                         * automatically S values
                          */
                         
                         sendData("please enter 's'");
@@ -264,6 +279,11 @@ public class Server extends JFrame {
 
     private boolean isBigInteger(String ms) {
         String checking = "";
+        /**
+         * on difference from usual client messages,
+         * this message should be in format
+         * "Key: ..."
+         */
         for (int i = 0; i < 4; i++) {
             checking = checking + ms.charAt(i);
         }
@@ -276,6 +296,11 @@ public class Server extends JFrame {
         for (int i = 11; i < 14; i++) {
             checking = checking + ms.charAt(i);
         }
+        
+        /**
+         * starting with i = 11 to avoid
+         * "Client >>> "
+         */
 
         return (checking.equals("S: "));
     }
@@ -287,6 +312,7 @@ public class Server extends JFrame {
         int i = 1;
         int e = numE.intValue();
         c = encrypted[0].multiply(numS.modPow(numE, numN));
+        // c = m * (s ^ e) mode n
         do {
             numD = BigInteger.valueOf(i);
             dc = c.modPow(numD, numN);
@@ -295,7 +321,7 @@ public class Server extends JFrame {
                 /**
                  * @note:
                  * 
-                 * if decripted message (dc) * s == d
+                 * if decrypted message (dc) * s == d
                  * returns true
                  */
                 
@@ -313,9 +339,10 @@ public class Server extends JFrame {
         setTextFieldEditable(false);
 
         try {
+            // Close actual client connection
             output.close();
             input.close();
-            socketClient.close();
+            socketClient.close();       
         } catch (IOException ex) {
             ex.printStackTrace();
         }
